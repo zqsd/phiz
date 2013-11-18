@@ -3,7 +3,8 @@
 namespace Phiz
 {
 
-Link::Link()
+Link::Link(Body* a, Body* b)
+    : _a(a), _b(b)
 {
 }
 

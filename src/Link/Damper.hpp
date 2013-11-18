@@ -8,11 +8,18 @@ namespace Phiz
     class Damper : public Link
     {
     public:
-        Damper();
+        /**
+        * \brief Creates a damper.
+        * \param a first object
+        * \param b second object
+        * \param z damping factor
+        */
+        Damper(Body* a, Body* b, float z);
         virtual ~Damper();
 
-        virtual void step(float dt) = 0;
+        virtual void step(float dt) override;
     protected:
+        float _z;
     };
 
 }

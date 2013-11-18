@@ -1,7 +1,6 @@
 #ifndef __PHIZ_HOOKSPRING__
 #define __PHIZ_HOOKSPRING__
 
-#include "../Body/Body.hpp"
 #include "Link.hpp"
 
 namespace Phiz
@@ -9,13 +8,26 @@ namespace Phiz
     class HookSpring : public Link
     {
     public:
-        HookSpring(Body* a, Body* b, float l, float k);
+        /**
+         * \brief Creates a spring between object a and b.
+         * \param a first object
+         * \param b second object
+         * \param k spring stiffness
+         * \param l rest length
+         */
+        HookSpring(Body* a, Body* b, float k, float l);
+
+        /**
+        * \brief Creates a spring between object a and b with default rest state.
+        * \param a first object
+        * \param b second object
+        * \param k spring stiffness
+        */
+        HookSpring(Body* a, Body* b, float k);
         virtual ~HookSpring();
 
         virtual void step(float dt) override;
     protected:
-        Body* _a;
-        Body* _b;
         float _l;
         float _k;
     };

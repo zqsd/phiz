@@ -8,11 +8,14 @@ namespace Phiz
     class Particle : public Body
     {
     public:
-        Particle(glm::vec3 position, float mass = 1.0f);
+        Particle(glm::vec3 position, float mass = 1.0f, float radius = 1.0f);
         virtual ~Particle();
 
         virtual void step(float dt) override;
+        const float& cradius() const { return _radius; }
+        float& radius() { return _radius; };
     protected:
+        float _radius;
     };
 
 }

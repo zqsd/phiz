@@ -29,21 +29,24 @@ void World::add(Link* link)
     _links.push_back(link);
 }
 
-void World::step(float remain)
+void World::step(float dt)
 {
-    for(; remain > 0.0f;) {
-        float dt = std::min(_step, remain);
+    for(; dt > 0.0f;) {
+        float h = std::min(_step, dt);
+
+        //FIXME: separate on SDL_GetCPUCount() threads
 
         for(std::vector<Link*>::const_iterator it = _links.cbegin(); it != _links.cend(); it++) {
             Link* link = *it;
-            link->step(dt);
-        }
-        for(std::vector<Body*>::const_iterator it = _bodies.begin(); it != _bodies.end(); it++) {
-            Body* body = *it;
-            body->step(dt);
+            link->step(h);
         }
 
-        remain -= dt;
+        for(std::vector<Body*>::const_iterator it = _bodies.cbegin(); it != _bodies.cend(); it++) {
+            Body* body = *it;
+            body->step(h);
+        }
+
+        dt -= h;
     }
 }
 
