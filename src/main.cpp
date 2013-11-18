@@ -3,6 +3,7 @@
 #include <SDL_video.h>
 #include <GL/glew.h>
 #include <iostream>
+#include <cmath>
 
 #include "World.hpp"
 #include "Body/FixedPoint.hpp"
@@ -21,32 +22,51 @@ int main(int argc, char* argv[])
 	
     // init opengl
     glClearColor(0.f, 0.f, 0.f, 1.f);
-    glPointSize(16.0f);
+    glPointSize(4.0f);
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(90.0, (float)width / (float)height, 0.1, 100.0);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    gluLookAt(0.0, 0.0, 15.0,
-              0.0, 0.0, 0.0,
-              0.0, 1.0, 0.0);
+
 
     // init physic scene
-    World world(0.01f);
-    Body* fp = new FixedPoint(glm::vec3(0.0f, 0.0f, 0.0f));
-    world.add(fp);
+    World world(0.01f); // 10ms
+    const int size = 20;
+    const float k = -100.0f;
+    Body* line[size * 2 + 1][size * 2 + 1];
 
-    for(int i = 1; i < 5; i++) {
-        Body* p0 = new Particle(glm::vec3(4.0f * (float)i, 0.0f, 0.0f));
-
-        world.add(p0);
-        world.add(new HookSpring(fp, p0, -0.1f));
-
-        fp = p0;
+    // cloth
+    for(int i = 0; i <= size; i++) {
+        for(int j = 0; j <= size; j++) {
+            line[i][j] = NULL;
+        }
+    }
+    line[0][0] = new FixedPoint(glm::vec3(-10.0f, 10.0f, 0.0f));
+    world.add(line[0][0]);
+    line[0][size] = new FixedPoint(glm::vec3(10.0f, 10.0f, 0.0f));
+    world.add(line[0][size]);
+    for(int i = 0; i <= size; i++) {
+        for(int j = 0; j <= size; j++) {
+            if(line[i][j] == NULL) {
+                float x = ((float)j / (float)size - 0.5f) * 20.0f,
+                      y = -((float)i / (float)size - 0.5f) * 20.0f;
+                Body* p = new Particle(glm::vec3(x, y, 0.0f));
+                line[i][j] = p;
+                world.add(p);
+            }
+        }
+    }
+    for(int i = 0; i <= size; i++) {
+        for(int j = 0; j <= size; j++) {
+            if(i > 0)
+                world.add(new HookSpring(line[i][j], line[i - 1][j], k));
+            if(j > 0)
+                world.add(new HookSpring(line[i][j], line[i][j - 1], k));
+        }
     }
     
+    float rot_x = 0.0f;
     Uint32 t_prev = SDL_GetTicks();
     bool running = true;
     while(running) {
@@ -57,8 +77,16 @@ int main(int argc, char* argv[])
         while(SDL_PollEvent(&event)) {
             if(event.type == SDL_QUIT) {
                 running = true;
+            } else if(event.type == SDL_MOUSEMOTION) {
+                rot_x = 3.14159f * (float)event.motion.x / (float)width;
             }
         }
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        gluLookAt(15.0 * std::sin(rot_x), 0.0, 15.0 * std::cos(rot_x),
+                  0.0, 0.0, 0.0,
+                  0.0, 1.0, 0.0);
 
         // run physic simulation
         world.step(dt);

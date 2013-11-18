@@ -23,7 +23,7 @@ void HookSpring::step(float dt)
     float d = glm::distance(_a->cposition(), _b->cposition());
     if(d < EPS)
         return;
-    float e = 1.0f - (-_l / d);
+    float e = 1.0f - (_l / d);
     glm::vec3 force = -_k * e * (_a->cposition() - _b->cposition());
     _a->force() += force;
     _b->force() -= force;
