@@ -11,7 +11,7 @@ namespace Phiz
         Particle(glm::vec3 position, float mass = 1.0f, float radius = 1.0f);
         virtual ~Particle();
 
-        virtual void step(float dt) override;
+        virtual void step(float dt);
         const float& cradius() const { return _radius; }
         float& radius() { return _radius; };
     protected:

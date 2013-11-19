@@ -36,12 +36,12 @@ void World::step(float dt)
 
         //FIXME: separate on SDL_GetCPUCount() threads
 
-        for(std::vector<Link*>::const_iterator it = _links.cbegin(); it != _links.cend(); it++) {
+        for(std::vector<Link*>::const_iterator it = _links.begin(); it != _links.end(); it++) {
             Link* link = *it;
             link->step(h);
         }
 
-        for(std::vector<Body*>::const_iterator it = _bodies.cbegin(); it != _bodies.cend(); it++) {
+        for(std::vector<Body*>::const_iterator it = _bodies.begin(); it != _bodies.end(); it++) {
             Body* body = *it;
             body->step(h);
         }

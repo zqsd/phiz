@@ -76,7 +76,10 @@ int main(int argc, char* argv[])
         SDL_Event event;
         while(SDL_PollEvent(&event)) {
             if(event.type == SDL_QUIT) {
-                running = true;
+                running = false;
+            } else if(event.type == SDL_KEYDOWN) {
+                if(event.key.keysym.sym == SDLK_ESCAPE)
+                    running = false;
             } else if(event.type == SDL_MOUSEMOTION) {
                 rot_x = 3.14159f * (float)event.motion.x / (float)width;
             }
@@ -96,14 +99,14 @@ int main(int argc, char* argv[])
         glClear(GL_COLOR_BUFFER_BIT);
 
         glBegin(GL_POINTS);
-        for(std::vector<Body*>::const_iterator it = world.bodies().cbegin(); it != world.bodies().cend(); it++) {
+        for(std::vector<Body*>::const_iterator it = world.bodies().begin(); it != world.bodies().end(); it++) {
             Body* body = *it;
             glVertex3f(body->cposition().x, body->cposition().y, body->cposition().z);
         }
         glEnd();
         
         glBegin(GL_LINES);
-        for(std::vector<Link*>::const_iterator it = world.links().cbegin(); it != world.links().cend(); it++) {
+        for(std::vector<Link*>::const_iterator it = world.links().begin(); it != world.links().end(); it++) {
             Link* link = *it;
             const Body* a = link->a();
             const Body* b = link->b();

@@ -11,7 +11,7 @@ namespace Phiz
         FixedPoint(glm::vec3 position);
         virtual ~FixedPoint();
 
-        virtual void step(float dt) override;
+        virtual void step(float dt);
     protected:
     };
 

@@ -17,7 +17,7 @@ namespace Phiz
         Damper(Body* a, Body* b, float z);
         virtual ~Damper();
 
-        virtual void step(float dt) override;
+        virtual void step(float dt);
     protected:
         float _z;
     };

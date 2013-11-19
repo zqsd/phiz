@@ -26,7 +26,7 @@ namespace Phiz
         HookSpring(Body* a, Body* b, float k);
         virtual ~HookSpring();
 
-        virtual void step(float dt) override;
+        virtual void step(float dt);
     protected:
         float _l;
         float _k;

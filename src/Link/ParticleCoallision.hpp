@@ -19,7 +19,7 @@ namespace Phiz
         ParticleCoallision(Body* a, Body* b, float k, float z);
         virtual ~ParticleCoallision();
 
-        virtual void step(float dt) override;
+        virtual void step(float dt);
     protected:
         float _k;
         float _z;
