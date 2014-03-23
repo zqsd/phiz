@@ -3,8 +3,8 @@
 namespace Phiz
 {
 
-FixedPoint::FixedPoint(glm::vec3 position)
-    : Body(position)
+FixedPoint::FixedPoint(glm::vec3 position, float radius)
+    : Body(position, radius)
 {
 }
 

@@ -9,6 +9,7 @@
 #include "World.hpp"
 #include "Body/FixedPoint.hpp"
 #include "Body/Particle.hpp"
+#include "Link/ParticleCoallision.hpp"
 #include "Link/HookSpringDamper.hpp"
 
 using namespace Phiz;
@@ -40,12 +41,15 @@ int main(int argc, char* argv[])
 	const unsigned n_w = 40,
 	               n_h = 40;
 	Body* grid[n_w][n_h];
+	FixedPoint* sphere = new FixedPoint(glm::vec3(0.0f), (float)n_w / 4.0f);
+	world.add(sphere);
 
     // cloth
 	for(int i = 0; i < n_w; i++) {
 		world.add(grid[i][0] = new FixedPoint(glm::vec3((float)i - (float)n_w / 2.0f, (float)n_h / 2.0f, (float)n_h / 2.0f)));
 		for(int j = 1; j < n_h; j++) {
-			world.add(grid[i][j] = new Particle(glm::vec3((float)i - (float)n_w / 2.0f, (float)n_h / 2.0f, (float)(n_h - j) - (float)n_h / 2.0f)));
+			world.add(grid[i][j] = new Particle(glm::vec3((float)i - (float)n_w / 2.0f, (float)n_h / 2.0f, (float)(n_h - j) - (float)n_h / 2.0f), 0.01f));
+			world.add(new ParticleCoallision(sphere, grid[i][j], k, z));
 		}
     }
 
@@ -127,12 +131,15 @@ int main(int argc, char* argv[])
 		glColor3f(0.6f, 0.6f, 0.6f);
         glBegin(GL_LINES);
         for(std::vector<Link*>::const_iterator it = world.links().begin(); it != world.links().end(); it++) {
-            Link* link = *it;
-            const Body* a = link->a();
-            const Body* b = link->b();
+			Link* link = *it;
+			HookSpringDamper* hookSpringDamper = dynamic_cast<HookSpringDamper*>(link);
+			if(hookSpringDamper != nullptr) {
+				const Body* a = link->a();
+				const Body* b = link->b();
 
-            glVertex3f(a->cposition().x, a->cposition().y, a->cposition().z);
-            glVertex3f(b->cposition().x, b->cposition().y, b->cposition().z);
+				glVertex3f(a->cposition().x, a->cposition().y, a->cposition().z);
+				glVertex3f(b->cposition().x, b->cposition().y, b->cposition().z);
+			}
         }
         glEnd();
 

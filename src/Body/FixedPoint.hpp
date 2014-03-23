@@ -5,15 +5,16 @@
 
 namespace Phiz
 {
-    class FixedPoint : public Body
-    {
-    public:
-        FixedPoint(glm::vec3 position);
-        virtual ~FixedPoint();
 
-        virtual void step(float dt);
-    protected:
-    };
+class FixedPoint : public Body
+{
+public:
+	FixedPoint(glm::vec3 position, float radius = 1.0);
+    virtual ~FixedPoint();
+
+    virtual void step(float dt);
+protected:
+};
 
 }
 

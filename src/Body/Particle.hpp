@@ -12,8 +12,6 @@ namespace Phiz
         virtual ~Particle();
 
         virtual void step(float dt);
-        const float& cradius() const { return _radius; }
-        float& radius() { return _radius; };
     protected:
         float _radius;
     };

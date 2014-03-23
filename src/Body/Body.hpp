@@ -8,7 +8,7 @@ namespace Phiz
     class Body
     {
     public:
-        Body(glm::vec3 position, float mass = 1.0f);
+		Body(glm::vec3 position, float radius = 1.0, float mass = 1.0f);
         virtual ~Body();
 
         virtual void step(float dt) = 0;
@@ -21,10 +21,14 @@ namespace Phiz
 
         glm::vec3& force() { return _force; }
         const glm::vec3& cforce() const { return _force; }
+
+        const float& cradius() const { return _radius; }
+        float& radius() { return _radius; };
     protected:
         glm::vec3 _position;
         glm::vec3 _speed;
         glm::vec3 _force;
+		float _radius;
         float _mass;
     };
 
