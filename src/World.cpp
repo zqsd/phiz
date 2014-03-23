@@ -1,18 +1,18 @@
 #include "World.hpp"
 #include <algorithm>
+#include <iostream>
+
+#ifdef SMP
+#include <thread>
+#include <future>
+#endif
 
 namespace Phiz
 {
 
-World::World(float step)
-    : _step(step)
+World::World()
 {
-    //SDL_GetCPUCount
-    //SDL_Thread *thread;
-    //thread = SDL_CreateThread( TestThread, "TestThread", (void *)NULL);
-    //SDL_mutex *SDL_CreateMutex(void);
-    //int SDL_mutexP(SDL_mutex *mutex); lock
-    //int SDL_mutexV(SDL_mutex *mutex); unlock
+	_cores = std::max(std::thread::hardware_concurrency(), (unsigned)1);
 }
 
 World::~World()
@@ -29,25 +29,46 @@ void World::add(Link* link)
     _links.push_back(link);
 }
 
-void World::step(float dt)
+void World::step(float h)
 {
-    for(; dt > 0.0f;) {
-        float h = std::min(_step, dt);
+#ifdef SMP
+	std::vector<std::future<void>> results(_cores);
 
-        //FIXME: separate on SDL_GetCPUCount() threads
+	unsigned linksCount = _links.size();
+	for(unsigned i = 0; i < _cores; i++) {
+		unsigned i_start = i * linksCount / _cores,
+			     i_stop = (i + 1) * linksCount / _cores;
+		results[i] = std::async(std::launch::async, [this, &h, i_start, i_stop]() {
+			for(unsigned i = i_start; i < i_stop; i++) {
+				_links[i]->step(h);
+			}
+		});
+	}
+	for(unsigned i = 0; i < _cores; i++) {
+		results[i].wait();
+	}
 
-        for(std::vector<Link*>::const_iterator it = _links.begin(); it != _links.end(); it++) {
-            Link* link = *it;
-            link->step(h);
-        }
+	unsigned bodiesCount = _bodies.size();
+	for(unsigned i = 0; i < _cores; i++) {
+		unsigned i_start = i * bodiesCount / _cores,
+		         i_stop = (i + 1) * bodiesCount / _cores;
+		results[i] = std::async(std::launch::async, [this, &h, i_start, i_stop]() {
+			for(unsigned i = i_start; i < i_stop; i++)
+				_bodies[i]->step(h);
+		});
+	}
+	for(unsigned i = 0; i < _cores; i++) {
+		results[i].wait();
+	}
+#else
+	for(unsigned i = 0; i < _links.size(); i++) {
+		_links[i]->step(h);
+	}
 
-        for(std::vector<Body*>::const_iterator it = _bodies.begin(); it != _bodies.end(); it++) {
-            Body* body = *it;
-            body->step(h);
-        }
-
-        dt -= h;
-    }
+	for(unsigned i = 0; i < _bodies.size(); i++) {
+		_bodies[i]->step(h);
+	}
+#endif
 }
 
 }
