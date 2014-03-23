@@ -27,6 +27,7 @@ add_executable(phiz
                src/Body/Particle.cpp src/Body/Particle.hpp
                src/Link/Damper.cpp src/Link/Damper.hpp
                src/Link/HookSpring.cpp src/Link/HookSpring.hpp
+               src/Link/HookSpringDamper.cpp src/Link/HookSpringDamper.hpp
                src/Link/Link.cpp src/Link/Link.hpp
                src/Link/ParticleCoallision.cpp src/Link/ParticleCoallision.hpp
                )

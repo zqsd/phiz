@@ -2,20 +2,21 @@
 #include <SDL.h>
 #include <SDL_video.h>
 #include <GL/glew.h>
+#include <GL/GLU.h>
 #include <iostream>
 #include <cmath>
 
 #include "World.hpp"
 #include "Body/FixedPoint.hpp"
 #include "Body/Particle.hpp"
-#include "Link/HookSpring.hpp"
+#include "Link/HookSpringDamper.hpp"
 
 using namespace Phiz;
 
 int main(int argc, char* argv[])
 {
-    int width = 800,
-        height = 600;
+    int width = 1024,
+        height = 768;
     assert(SDL_Init(SDL_INIT_VIDEO) >= 0);
     assert(SDL_SetVideoMode(width, height, 0, SDL_OPENGL) != NULL);
     assert(glewInit() == GLEW_OK);
@@ -31,41 +32,59 @@ int main(int argc, char* argv[])
 
 
     // init physic scene
-    World world(0.01f); // 10ms
-    const int size = 20;
-    const float k = -100.0f;
-    Body* line[size * 2 + 1][size * 2 + 1];
+    World world;
+	const float h = 1.0f / 50.0f;
+	const float alpha = 0.01f, beta = 0.001f;
+	const float k = -alpha / (h * h),
+				z = beta / h;
+	const unsigned n_w = 40,
+	               n_h = 40;
+	Body* grid[n_w][n_h];
 
     // cloth
-    for(int i = 0; i <= size; i++) {
-        for(int j = 0; j <= size; j++) {
-            line[i][j] = NULL;
-        }
+	for(int i = 0; i < n_w; i++) {
+		world.add(grid[i][0] = new FixedPoint(glm::vec3((float)i - (float)n_w / 2.0f, (float)n_h / 2.0f, (float)n_h / 2.0f)));
+		for(int j = 1; j < n_h; j++) {
+			world.add(grid[i][j] = new Particle(glm::vec3((float)i - (float)n_w / 2.0f, (float)n_h / 2.0f, (float)(n_h - j) - (float)n_h / 2.0f)));
+		}
     }
-    line[0][0] = new FixedPoint(glm::vec3(-10.0f, 10.0f, 0.0f));
-    world.add(line[0][0]);
-    line[0][size] = new FixedPoint(glm::vec3(10.0f, 10.0f, 0.0f));
-    world.add(line[0][size]);
-    for(int i = 0; i <= size; i++) {
-        for(int j = 0; j <= size; j++) {
-            if(line[i][j] == NULL) {
-                float x = ((float)j / (float)size - 0.5f) * 20.0f,
-                      y = -((float)i / (float)size - 0.5f) * 20.0f;
-                Body* p = new Particle(glm::vec3(x, y, 0.0f));
-                line[i][j] = p;
-                world.add(p);
-            }
-        }
-    }
-    for(int i = 0; i <= size; i++) {
-        for(int j = 0; j <= size; j++) {
-            if(i > 0)
-                world.add(new HookSpring(line[i][j], line[i - 1][j], k));
-            if(j > 0)
-                world.add(new HookSpring(line[i][j], line[i][j - 1], k));
-        }
-    }
-    
+
+	// horizontal links
+	for(int i = 0; i < n_w - 1; i++) {
+		for(int j = 0; j < n_h; j++) {
+			world.add((HookSpring*)new HookSpringDamper(grid[i][j], grid[i + 1][j], k, z));
+		}
+	}
+	// vertical links
+	for(int i = 0; i < n_w; i++) {
+		for(int j = 0; j < n_h - 1; j++) {
+			world.add((HookSpring*)new HookSpringDamper(grid[i][j], grid[i][j + 1], k, z));
+		}
+	}
+	// diagonal links
+	for(int i = 0; i < n_w - 1; i++) {
+		for(int j = 0; j < n_h - 1; j++) {
+			world.add((HookSpring*)new HookSpringDamper(grid[i + 1][j], grid[i][j + 1], k, z));
+			world.add((HookSpring*)new HookSpringDamper(grid[i][j], grid[i + 1][j + 1], k, z));
+		}
+	}
+	// double horizontal links
+	for(int i = 0; i < n_w - 2; i++) {
+		for(int j = 0; j < n_h; j++) {
+			world.add((HookSpring*)new HookSpringDamper(grid[i][j], grid[i + 2][j], k, z));
+		}
+	}
+	// double vertical links
+	for(int i = 0; i < n_w; i++) {
+		for(int j = 0; j < n_h - 2; j++) {
+			world.add((HookSpring*)new HookSpringDamper(grid[i][j], grid[i][j + 2], k, z));
+		}
+	}
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+
+	GLUquadric* quadric = gluNewQuadric();
     float rot_x = 0.0f;
     Uint32 t_prev = SDL_GetTicks();
     bool running = true;
@@ -87,17 +106,17 @@ int main(int argc, char* argv[])
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        gluLookAt(15.0 * std::sin(rot_x), 0.0, 15.0 * std::cos(rot_x),
+        gluLookAt(n_w * std::sin(rot_x), 0.0, n_w * std::cos(rot_x),
                   0.0, 0.0, 0.0,
                   0.0, 1.0, 0.0);
 
         // run physic simulation
-        world.step(dt);
+        world.step(h);
 
         // draw
-        //FIXME: stream vbos rather than fixed pipeline
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		glColor3f(1.0f, 1.0f, 1.0f);
         glBegin(GL_POINTS);
         for(std::vector<Body*>::const_iterator it = world.bodies().begin(); it != world.bodies().end(); it++) {
             Body* body = *it;
@@ -105,6 +124,7 @@ int main(int argc, char* argv[])
         }
         glEnd();
         
+		glColor3f(0.6f, 0.6f, 0.6f);
         glBegin(GL_LINES);
         for(std::vector<Link*>::const_iterator it = world.links().begin(); it != world.links().end(); it++) {
             Link* link = *it;
@@ -115,6 +135,10 @@ int main(int argc, char* argv[])
             glVertex3f(b->cposition().x, b->cposition().y, b->cposition().z);
         }
         glEnd();
+
+		glColor3f(0.0f, 0.0f, 0.75f);
+		gluSphere(quadric, (float)n_w / 4.0f, 32, 32);
+
 
         SDL_GL_SwapBuffers();
         t_prev = t;
