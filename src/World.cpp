@@ -12,7 +12,9 @@ namespace Phiz
 
 World::World()
 {
+#ifdef SMP
 	_cores = std::max(std::thread::hardware_concurrency(), (unsigned)1);
+#endif
 }
 
 World::~World()

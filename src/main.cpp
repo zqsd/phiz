@@ -2,7 +2,7 @@
 #include <SDL.h>
 #include <SDL_video.h>
 #include <GL/glew.h>
-#include <GL/GLU.h>
+#include <GL/glu.h>
 #include <iostream>
 #include <cmath>
 
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
         for(std::vector<Link*>::const_iterator it = world.links().begin(); it != world.links().end(); it++) {
 			Link* link = *it;
 			HookSpringDamper* hookSpringDamper = dynamic_cast<HookSpringDamper*>(link);
-			if(hookSpringDamper != nullptr) {
+			if(hookSpringDamper != NULL) {
 				const Body* a = link->a();
 				const Body* b = link->b();
 
